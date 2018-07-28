@@ -5,7 +5,7 @@ import json
 import socket
 import os
 import RPi.GPIO as GPIO
-import time
+import pigpio
 
 socket_path = '/tmp/uv4l.socket'
 
@@ -111,24 +111,21 @@ class Wheels(object):
 
 
 class Camera:
-    CENTER = 5
-    UP_LIMIT = 12
-    DOWN_LIMIT = 1
-    STEP = 0.5
+    CENTER = 40000
+    UP_LIMIT = 80000
+    DOWN_LIMIT = 30000
+    STEP = 5000
 
-    def __init__(self, servo=21, freq=50):
+    def __init__(self, servo=18, freq=50):
         self.servo = servo
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(servo, GPIO.OUT)
-        self.pwm = GPIO.PWM(servo, freq)
+        self.freq = freq
+        self.pi = pigpio.pi()
 
         self.angle = self.CENTER
         self._set_angle()
 
     def _set_angle(self):
-        self.pwm.start(self.angle)
-        time.sleep(0.5)
-        self.pwm.stop()
+        self.pi.hardware_PWM(self.servo, self.freq, self.angle)
 
     def up(self):
         if self.angle + self.STEP < self.UP_LIMIT:
