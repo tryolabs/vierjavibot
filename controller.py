@@ -5,6 +5,7 @@ import json
 import socket
 import os
 import RPi.GPIO as GPIO
+import time
 
 socket_path = '/tmp/uv4l.socket'
 
@@ -110,11 +111,34 @@ class Wheels(object):
 
 
 class Camera:
-    def up(self, delay):
-        pass
+    CENTER = 5
+    UP_LIMIT = 12
+    DOWN_LIMIT = 1
+    STEP = 0.5
 
-    def down(self, delay):
-        pass
+    def __init__(self, servo=21, freq=50):
+        self.servo = servo
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(servo, GPIO.OUT)
+        self.pwm = GPIO.PWM(servo, freq)
+
+        self.angle = self.CENTER
+        self._set_angle()
+
+    def _set_angle(self):
+        self.pwm.start(self.angle)
+        time.sleep(0.5)
+        self.pwm.stop()
+
+    def up(self):
+        if self.angle + self.STEP < self.UP_LIMIT:
+            self.angle += self.STEP
+            self._set_angle()
+
+    def down(self):
+        if self.angle + self.STEP < self.UP_LIMIT:
+            self.angle -= self.STEP
+            self._set_angle()
 
 
 MAX_MESSAGE_SIZE = 4096
