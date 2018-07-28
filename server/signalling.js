@@ -5,6 +5,7 @@
 RTCPeerConnection = window.RTCPeerConnection || /*window.mozRTCPeerConnection ||*/ window.webkitRTCPeerConnection;
 RTCSessionDescription = /*window.mozRTCSessionDescription ||*/ window.RTCSessionDescription;
 RTCIceCandidate = /*window.mozRTCIceCandidate ||*/ window.RTCIceCandidate;
+navigator.getUserMedia = navigator.getUserMedia || navigator.mozGetUserMedia || navigator.webkitGetUserMedia || navigator.msGetUserMedia;
 
 function signal(url, onStream, onError, onClose, onMessage) {
     if ("WebSocket" in window) {
@@ -83,6 +84,29 @@ function signal(url, onStream, onError, onClose, onMessage) {
                     trickle_ice: true
                 }
             };
+
+            localConstraints = {}
+            // localConstraints['audio'] = { mediaSource: "audioCapture" };
+            localConstraints['audio'] = isFirefox ? { echoCancellation: true } : { optional: [{ echoCancellation: true }] };
+            if (localConstraints.audio) {
+                if (navigator.getUserMedia) {
+                    navigator.getUserMedia(localConstraints, function (stream) {
+                        if (stream) {
+                            pc.addStream(stream);
+                        }
+                        // localVideoElement.muted = true;
+                        //localVideoElement.src = URL.createObjectURL(stream); // deprecated
+                        // localVideoElement.srcObject = stream;
+                        // localVideoElement.play();
+                    }, function (error) {
+                        stop();
+                        alert("An error has occurred. Check media device, permissions on media and origin.");
+                        console.error(error);
+                    });
+                } else {
+                    console.log("getUserMedia not supported");
+                }
+            }
             console.log("send message " + JSON.stringify(request));
             ws.send(JSON.stringify(request));
         };
@@ -321,4 +345,3 @@ function keyup(e) {
 // listen to key events
 window.addEventListener('keydown', keydown, true);
 window.addEventListener('keyup', keyup, true);
-
