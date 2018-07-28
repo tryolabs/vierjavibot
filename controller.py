@@ -1,6 +1,8 @@
+"""
+This script is called by the controller.service
+"""
 import json
 import socket
-import time
 import os
 import RPi.GPIO as GPIO
 
