@@ -27,7 +27,7 @@ def cleanup():
 class Wheels(object):
 
     def __init__(
-            self, r_wheel_forward=26, r_wheel_backward=19, l_wheel_forward=13, l_wheel_backward=6):
+            self, r_wheel_forward=6, r_wheel_backward=13, l_wheel_forward=19, l_wheel_backward=26):
         self.r_wheel_forward = r_wheel_forward
         self.r_wheel_backward = r_wheel_backward
         self.l_wheel_forward = l_wheel_forward
