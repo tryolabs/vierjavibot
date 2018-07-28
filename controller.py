@@ -143,54 +143,54 @@ class Camera:
 
 MAX_MESSAGE_SIZE = 4096
 
+if __name__ == "__main__":
+    while True:
+        print('awaiting connection...')
+        connection, client_address = s.accept()
+        print('client_address %s' % client_address)
+        try:
+            wheels = Wheels()
+            camera = Camera()
+            print('established connection with', client_address)
 
-while True:
-    print('awaiting connection...')
-    connection, client_address = s.accept()
-    print('client_address %s' % client_address)
-    try:
-        wheels = Wheels()
-        camera = Camera()
-        print('established connection with', client_address)
+            while True:
+                message = connection.recv(MAX_MESSAGE_SIZE)
+                # print('message: {}'.format(message))
+                if not message:
+                    break
+                data = json.loads(message.decode('utf-8'))
 
-        while True:
-            message = connection.recv(MAX_MESSAGE_SIZE)
-            # print('message: {}'.format(message))
-            if not message:
-                break
-            data = json.loads(message.decode('utf-8'))
-
-            if 'commands' in data:
-                if 'FORDWARD' in data['commands']:
-                    if 'RIGHT' in data['commands']:
-                        wheels.go_fw_right()
-                    elif 'LEFT' in data['commands']:
-                        wheels.go_fw_left()
+                if 'commands' in data:
+                    if 'FORDWARD' in data['commands']:
+                        if 'RIGHT' in data['commands']:
+                            wheels.go_fw_right()
+                        elif 'LEFT' in data['commands']:
+                            wheels.go_fw_left()
+                        else:
+                            wheels.go_fw()
+                    elif 'BACKWARD' in data['commands']:
+                        if 'RIGHT' in data['commands']:
+                            wheels.go_bw_right()
+                        elif 'LEFT' in data['commands']:
+                            wheels.go_bw_left()
+                        else:
+                            wheels.go_bw()
                     else:
-                        wheels.go_fw()
-                elif 'BACKWARD' in data['commands']:
-                    if 'RIGHT' in data['commands']:
-                        wheels.go_bw_right()
-                    elif 'LEFT' in data['commands']:
-                        wheels.go_bw_left()
-                    else:
-                        wheels.go_bw()
-                else:
-                    if 'RIGHT' in data['commands']:
-                        wheels.turn_right()
-                    elif 'LEFT' in data['commands']:
-                        wheels.turn_left()
-                    else:
-                        wheels.stop()
+                        if 'RIGHT' in data['commands']:
+                            wheels.turn_right()
+                        elif 'LEFT' in data['commands']:
+                            wheels.turn_left()
+                        else:
+                            wheels.stop()
 
-                if 'UP' in data['commands']:
-                    camera.up()
-                elif 'DOWN' in data['commands']:
-                    camera.down()
+                    if 'UP' in data['commands']:
+                        camera.up()
+                    elif 'DOWN' in data['commands']:
+                        camera.down()
 
-        print('connection closed')
+            print('connection closed')
 
-    finally:
-        # Clean up the connection
-        cleanup()
-        connection.close()
+        finally:
+            # Clean up the connection
+            cleanup()
+            connection.close()
