@@ -161,7 +161,6 @@ while True:
                     camera.up()
                 elif 'DOWN' in data['commands']:
                     camera.down()
-                print("")
 
         print('connection closed')
 
