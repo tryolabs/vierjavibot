@@ -14,3 +14,8 @@ pip3 install -r requirements.txt
 
 mv /etc/uv4l/uv4l-raspicam.conf /etc/uv4l/uv4l-raspicam.conf.bak
 mv uv4l-raspicam.conf /etc/uv4l/uv4l-raspicam.conf
+
+cp controller.service /etc/systemd/system/
+
+systemctl enable controller.service
+systemctl start controller.service
