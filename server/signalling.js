@@ -14,6 +14,7 @@ function signal(url, onStream, onError, onClose, onMessage) {
         var pc;
         var iceCandidates = [];
         var hasRemoteDesc = false;
+        var isFirefox = typeof InstallTrigger !== 'undefined';// Firefox 1.0+
 
         function addIceCandidates() {
             if (hasRemoteDesc) {
@@ -86,8 +87,8 @@ function signal(url, onStream, onError, onClose, onMessage) {
             };
 
             localConstraints = {}
-            // localConstraints['audio'] = { mediaSource: "audioCapture" };
-            localConstraints['audio'] = isFirefox ? { echoCancellation: true } : { optional: [{ echoCancellation: true }] };
+            localConstraints['audio'] = { mediaSource: "audioCapture" };
+            //localConstraints['audio'] = isFirefox ? { echoCancellation: true } : { optional: [{ echoCancellation: true }] };
             if (localConstraints.audio) {
                 if (navigator.getUserMedia) {
                     navigator.getUserMedia(localConstraints, function (stream) {
@@ -223,7 +224,7 @@ function onDataChannel(event) {
 
     event.channel.onopen = function () {
         console.log("Data Channel is open!");
-        document.getElementById('datachannels').disabled = false;
+        //document.getElementById('datachannels').disabled = false;
     };
 
     event.channel.onerror = function (error) {
