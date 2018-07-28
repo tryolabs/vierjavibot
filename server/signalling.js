@@ -247,42 +247,11 @@ function stop() {
         datachannel.close();
         datachannel = null;
     }
-    if (localdatachannel) {
-        console.log("closing local data channels");
-        localdatachannel.close();
-        localdatachannel = null;
-    }
-}
-function handleDataAvailable(event) {
-    //console.log(event);
-    if (event.data && event.data.size > 0) {
-        recordedBlobs.push(event.data);
-    }
 }
 
 function send_message(msg) {
     datachannel.send(msg);
     console.log("message sent: ", msg);
-}
-
-function create_localdatachannel() {
-    if (pc && localdatachannel)
-        return;
-    localdatachannel = pc.createDataChannel('datachannel');
-    localdatachannel.onopen = function(event) {
-        if (localdatachannel.readyState === "open") {
-            localdatachannel.send("datachannel created!");
-        }
-    };
-    console.log("data channel created");
-}
-
-function close_localdatachannel() {
-    if (localdatachannel) {
-        localdatachannel.close();
-        localdatachannel = null;
-    }
-    console.log("local data channel closed");
 }
 
 function keyToCommand(keyCode) {
