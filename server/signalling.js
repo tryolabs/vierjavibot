@@ -307,10 +307,8 @@ function keyToCommand(keyCode) {
 var commands = []
 
 function sendCommands(){
-  if (commands.length){
     console.log(JSON.stringify({commands: commands}))
     send_message(JSON.stringify({commands: commands}))
-  }
 }
 
 function keydown(e) {
