@@ -1,0 +1,14 @@
+[Unit]
+Description=Bot controller
+After=uv4l_raspicam.service
+
+[Service]
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/repo
+ExecStart=/usr/bin/python3 /home/pi/repo/controller.py
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+
+[Install]
+WantedBy=multi-user.target
