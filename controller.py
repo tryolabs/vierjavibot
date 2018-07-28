@@ -34,51 +34,41 @@ class Wheels(object):
         self.l_wheel_backward = l_wheel_backward
 
         # Setup motors
-        # GPIO.setmode(GPIO.BCM)
-        # GPIO.setup(r_wheel_forward, GPIO.OUT)
-        # GPIO.setup(r_wheel_backward, GPIO.OUT)
-        # GPIO.setup(l_wheel_forward, GPIO.OUT)
-        # GPIO.setup(l_wheel_backward, GPIO.OUT)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(r_wheel_forward, GPIO.OUT)
+        GPIO.setup(r_wheel_backward, GPIO.OUT)
+        GPIO.setup(l_wheel_forward, GPIO.OUT)
+        GPIO.setup(l_wheel_backward, GPIO.OUT)
 
         # Turn all motors off
-        # GPIO.output(r_wheel_forward, GPIO.LOW)
-        pass
-        # GPIO.output(r_wheel_backward, GPIO.LOW)
-        pass
-        # GPIO.output(l_wheel_forward, GPIO.LOW)
-        pass
-        # GPIO.output(l_wheel_backward, GPIO.LOW)
-        pass
+        GPIO.output(r_wheel_forward, GPIO.LOW)
+        GPIO.output(r_wheel_backward, GPIO.LOW)
+        GPIO.output(l_wheel_forward, GPIO.LOW)
+        GPIO.output(l_wheel_backward, GPIO.LOW)
 
     def _spin_right_wheel_forward(self):
-        # GPIO.output(self.r_wheel_forward, GPIO.HIGH)
-        # GPIO.output(self.r_wheel_backward, GPIO.LOW)
-        print("K", end="")
+        GPIO.output(self.r_wheel_forward, GPIO.HIGH)
+        GPIO.output(self.r_wheel_backward, GPIO.LOW)
 
     def _spin_right_wheel_backward(self):
-        # GPIO.output(self.r_wheel_backward, GPIO.HIGH)
-        # GPIO.output(self.r_wheel_forward, GPIO.LOW)
-        print("J", end="")
+        GPIO.output(self.r_wheel_backward, GPIO.HIGH)
+        GPIO.output(self.r_wheel_forward, GPIO.LOW)
 
     def _stop_right_wheel(self):
-        # GPIO.output(self.r_wheel_backward, GPIO.LOW)
-        # GPIO.output(self.r_wheel_forward, GPIO.LOW)
-        print("-", end="")
+        GPIO.output(self.r_wheel_backward, GPIO.LOW)
+        GPIO.output(self.r_wheel_forward, GPIO.LOW)
 
     def _spin_left_wheel_forward(self):
-        # GPIO.output(self.l_wheel_forward, GPIO.HIGH)
-        # GPIO.output(self.l_wheel_backward, GPIO.LOW)
-        print("K", end="")
+        GPIO.output(self.l_wheel_forward, GPIO.HIGH)
+        GPIO.output(self.l_wheel_backward, GPIO.LOW)
 
     def _spin_left_wheel_backward(self):
-        # GPIO.output(self.l_wheel_backward, GPIO.HIGH)
-        # GPIO.output(self.l_wheel_forward, GPIO.LOW)
-        print("J", end="")
+        GPIO.output(self.l_wheel_backward, GPIO.HIGH)
+        GPIO.output(self.l_wheel_forward, GPIO.LOW)
 
     def _stop_left_wheel(self):
-        # GPIO.output(self.l_wheel_backward, GPIO.LOW)
-        # GPIO.output(self.l_wheel_forward, GPIO.LOW)
-        print("-", end="")
+        GPIO.output(self.l_wheel_backward, GPIO.LOW)
+        GPIO.output(self.l_wheel_forward, GPIO.LOW)
 
     def go_fw(self):
         self._spin_left_wheel_forward()
@@ -119,14 +109,10 @@ class Wheels(object):
 
 class Camera:
     def up(self, delay):
-        # look up
-        if delay:
-            time.sleep(delay)
+        pass
 
     def down(self, delay):
-        # look down
-        if delay:
-            time.sleep(delay)
+        pass
 
 
 MAX_MESSAGE_SIZE = 4096
