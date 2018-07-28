@@ -133,7 +133,7 @@ class Camera:
             self._set_angle()
 
     def down(self):
-        if self.angle + self.STEP < self.UP_LIMIT:
+        if self.angle - self.STEP > self.DOWN_LIMIT:
             self.angle -= self.STEP
             self._set_angle()
 
