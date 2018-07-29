@@ -4,8 +4,9 @@ This script is called by the controller.service
 import json
 import socket
 import os
-import RPi.GPIO as GPIO
 import pigpio
+import RPi.GPIO as GPIO
+import time
 
 socket_path = '/tmp/uv4l.socket'
 
@@ -28,6 +29,19 @@ def cleanup():
 
 
 class Wheels(object):
+    INITIAL_FW_SPEED = 50  # starting speed when moving fw in %
+    FW_ACCELERATION = 50  # acceleration when going fw, in % / second
+    TOP_FW_SPEED = 100  # top speed in %
+    FW_TURN_FACTOR = 2  # wheel in direction of turn is slowed by this factor (speed / factor)
+
+    INITIAL_BW_SPEED = 20  # starting speed when moving bw in %
+    BW_ACCELERATION = 50  # acceleration when going bw, in % / second
+    TOP_BW_SPEED = 70  # top speed in %
+    BW_TURN_FACTOR = 2  # wheel in direction of turn is slowed by this factor (speed / factor)
+
+    INITIAL_TURN_SPEED = 10  # starting speed when turning in place in %
+    TOP_TURN_SPEED = 60  # top speed in %
+    TURN_BALANCE = 0.5  # balance of power to accomplish turn in place, must be between 0 and 1
 
     def __init__(
             self, r_wheel_forward=6, r_wheel_backward=13, l_wheel_forward=19, l_wheel_backward=26):
@@ -43,71 +57,132 @@ class Wheels(object):
         GPIO.setup(l_wheel_forward, GPIO.OUT)
         GPIO.setup(l_wheel_backward, GPIO.OUT)
 
+        # setup pwm
+        self.right_fw = GPIO.PWM(r_wheel_forward, self.FREQ)
+        self.right_bw = GPIO.PWM(r_wheel_backward, self.FREQ)
+        self.left_fw = GPIO.PWM(l_wheel_forward, self.FREQ)
+        self.left_bw = GPIO.PWM(l_wheel_backward, self.FREQ)
+
         # Turn all motors off
-        GPIO.output(r_wheel_forward, GPIO.LOW)
-        GPIO.output(r_wheel_backward, GPIO.LOW)
-        GPIO.output(l_wheel_forward, GPIO.LOW)
-        GPIO.output(l_wheel_backward, GPIO.LOW)
+        self.right_fw.start(0)
+        self.right_bw.start(0)
+        self.left_fw.start(0)
+        self.left_bw.start(0)
 
-    def _spin_right_wheel_forward(self):
-        GPIO.output(self.r_wheel_forward, GPIO.HIGH)
-        GPIO.output(self.r_wheel_backward, GPIO.LOW)
+        self._movement_timestamp = None
 
-    def _spin_right_wheel_backward(self):
-        GPIO.output(self.r_wheel_backward, GPIO.HIGH)
-        GPIO.output(self.r_wheel_forward, GPIO.LOW)
+    def _spin_right_wheel_forward(self, speed):
+        self.right_fw.ChangeDutyCycle(speed)
+        self.right_bw.ChangeDutyCycle(0)
+
+    def _spin_right_wheel_backward(self, speed):
+        self.right_fw.ChangeDutyCycle(0)
+        self.right_bw.ChangeDutyCycle(speed)
 
     def _stop_right_wheel(self):
-        GPIO.output(self.r_wheel_backward, GPIO.LOW)
-        GPIO.output(self.r_wheel_forward, GPIO.LOW)
+        self.right_fw.ChangeDutyCycle(0)
+        self.right_bw.ChangeDutyCycle(0)
 
-    def _spin_left_wheel_forward(self):
-        GPIO.output(self.l_wheel_forward, GPIO.HIGH)
-        GPIO.output(self.l_wheel_backward, GPIO.LOW)
+    def _spin_left_wheel_forward(self, speed):
+        self.left_fw.ChangeDutyCycle(speed)
+        self.left_bw.ChangeDutyCycle(0)
 
-    def _spin_left_wheel_backward(self):
-        GPIO.output(self.l_wheel_backward, GPIO.HIGH)
-        GPIO.output(self.l_wheel_forward, GPIO.LOW)
+    def _spin_left_wheel_backward(self, speed):
+        self.left_fw.ChangeDutyCycle(0)
+        self.left_bw.ChangeDutyCycle(speed)
 
     def _stop_left_wheel(self):
-        GPIO.output(self.l_wheel_backward, GPIO.LOW)
-        GPIO.output(self.l_wheel_forward, GPIO.LOW)
+        self.left_fw.ChangeDutyCycle(0)
+        self.left_bw.ChangeDutyCycle(0)
+
+    def _get_fw_speed(self):
+        # starting point
+        speed = self.INITIAL_FW_SPEED
+
+        # initialize the time if we haven't
+        if self._movement_timestamp is None:
+            self._movement_timestamp = time.time()
+        else:
+            # calculate the speed we should be using giving how long we have been accelerating
+            speed += self.FW_ACCELERATION * (time.time() - self._movement_timestamp)
+
+        # cap the speed
+        return min(speed, self.TOP_FW_SPEED)
+
+    def _get_bw_speed(self):
+        speed = self.INITIAL_BW_SPEED
+
+        if self._movement_timestamp is None:
+            self._movement_timestamp = time.time()
+        else:
+            speed += self.BW_ACCELERATION * (time.time() - self._movement_timestamp)
+        return min(speed, self.TOP_BW_SPEED)
+
+    def _get_turn_speed(self):
+        speed = self.INITIAL_TURN_SPEED
+
+        if self._movement_timestamp is None:
+            self._movement_timestamp = time.time()
+        else:
+            speed += self.TURN_ACCELERATION * (time.time() - self._movement_timestamp)
+
+        # since we are spining one wheel fw and the other bw the total speed is the double
+        total_speed = 2 * min(speed, self.TOP_TURN_SPEED)
+
+        # balance that total speed between the wheels
+        fw_speed = total_speed * (self.TURN_BALANCE)
+        bw_speed = total_speed * (1 - self.TURN_BALANCE)
+
+        # lower both speeds if we went over the limit to keep the diference
+        adjust = max(0, self.TOP_TURN_SPEED - max(fw_speed, bw_speed))
+        fw_speed -= adjust
+        bw_speed -= adjust
+        return fw_speed, bw_speed
 
     def go_fw(self):
-        self._spin_left_wheel_forward()
-        self._spin_right_wheel_forward()
+        speed = self._get_fw_speed()
+        self._spin_left_wheel_forward(speed)
+        self._spin_right_wheel_forward(speed)
 
     def go_fw_left(self):
-        self._stop_left_wheel()
-        self._spin_right_wheel_forward()
+        speed = self._get_fw_speed()
+        self._spin_left_wheel_forward(speed/self.FW_TURN_FACTOR)
+        self._spin_right_wheel_forward(speed)
 
     def go_fw_right(self):
-        self._spin_left_wheel_forward()
-        self._stop_right_wheel()
+        speed = self._get_fw_speed()
+        self._spin_left_wheel_forward(speed)
+        self._spin_right_wheel_forward(speed/self.FW_TURN_FACTOR)
 
     def go_bw(self):
-        self._spin_left_wheel_backward()
-        self._spin_right_wheel_backward()
+        speed = self._get_bw_speed()
+        self._spin_left_wheel_backward(speed)
+        self._spin_right_wheel_backward(speed)
 
     def go_bw_right(self):
-        self._spin_left_wheel_backward()
-        self._stop_right_wheel()
+        speed = self._get_bw_speed()
+        self._spin_left_wheel_backward(speed)
+        self._spin_right_wheel_backward(speed/self.BW_TURN_FACTOR)
 
     def go_bw_left(self):
-        self._stop_left_wheel()
-        self._spin_right_wheel_backward()
+        speed = self._get_bw_speed()
+        self._spin_left_wheel_backward(speed/self.BW_TURN_FACTOR)
+        self._spin_right_wheel_backward(speed)
 
     def stop(self):
         self._stop_left_wheel()
         self._stop_right_wheel()
+        self._movement_timestamp = None
 
     def turn_right(self):
-        self._spin_left_wheel_forward()
-        self._spin_right_wheel_backward()
+        fw_speed, bw_speed = self._get_turn_speed()
+        self._spin_left_wheel_forward(fw_speed)
+        self._spin_right_wheel_backward(bw_speed)
 
     def turn_left(self):
-        self._spin_left_wheel_backward()
-        self._spin_right_wheel_forward()
+        fw_speed, bw_speed = self._get_turn_speed()
+        self._spin_left_wheel_backward(bw_speed)
+        self._spin_right_wheel_forward(fw_speed)
 
 
 class Camera:
@@ -152,7 +227,6 @@ if __name__ == "__main__":
 
             while True:
                 message = connection.recv(MAX_MESSAGE_SIZE)
-                # print('message: {}'.format(message))
                 if not message:
                     break
                 data = json.loads(message.decode('utf-8'))
@@ -189,5 +263,7 @@ if __name__ == "__main__":
 
         finally:
             # Clean up the connection
+            wheels.stop()
+
             cleanup()
             connection.close()
