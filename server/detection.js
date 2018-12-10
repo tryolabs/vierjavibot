@@ -69,7 +69,7 @@ function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
 }
 
 async function loadNet() {
-    return await posenet.load();
+    return await posenet.load(1.0);
 }
 
 async function detectBody(canvas, net) {
@@ -77,7 +77,7 @@ async function detectBody(canvas, net) {
         var ctx = canvas.getContext('2d');
         var imageElement = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-        var imageScaleFactor = 0.3;
+        var imageScaleFactor = 0.5;
         var flipHorizontal = false;
         var outputStride = 16;
         var maxPoseDetections = 2;

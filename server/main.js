@@ -1,8 +1,8 @@
 (function () {
     var signalObj = null;
     var counter = 0;
-    const minPoseConfidence = 0.2; // 0.15
-    const minPartConfidence = 0.15; // 0.10
+    const minPoseConfidence = 0.10; // 0.20 - 0.15
+    const minPartConfidence = 0.15; // 0.15 - 0.10
     const skip_frame_detection = 3; //
     var last_poses = null;
     var toggleSkeleton = null;
@@ -66,9 +66,11 @@
                 net = loadNet().then(function (result) {
                     console.log("LoadNet:", result);
                     net = result;
+                    load_net.disabled = true;
+                    load_net.style = "color: gainsboro; background-color: gray";
                 });
             } else {
-                console.log("Already loaded");
+                alert("The Net was already loaded");
             }
         }, false);
 
