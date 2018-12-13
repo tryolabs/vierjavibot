@@ -1,6 +1,11 @@
 # vierjavibot
 
-This project was originally developed in **48 hours**, during our 2018 edition of the Tryolabs Hackathon. If you want to know more about it please check out [this blog post](https://tryolabs.com/blog/hackathon-robot-remote-work-iot-computer-vision/).
+This project was originally developed in **48 hours**, during our 2018 edition of the Tryolabs Hackathon. 
+
+Please, take into account that the code quality was greatly influenced by the little time available to complete the project.
+We are sharing it in hope that it may be useful for those interested in these topics.
+
+If you want to know more about it please check out [this blog post](https://tryolabs.com/blog/hackathon-robot-remote-work-iot-computer-vision/).
 
 ---
 
