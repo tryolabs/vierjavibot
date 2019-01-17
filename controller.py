@@ -142,12 +142,12 @@ MAX_MESSAGE_SIZE = 4096
 
 if __name__ == "__main__":
     while True:
+        wheels = Wheels()
+        camera = Camera()
         print('awaiting connection...')
         connection, client_address = s.accept()
         print('client_address %s' % client_address)
         try:
-            wheels = Wheels()
-            camera = Camera()
             print('established connection with', client_address)
 
             while True:
